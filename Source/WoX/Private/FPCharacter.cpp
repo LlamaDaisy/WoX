@@ -1,0 +1,138 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "FPCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+#include "Components/InputComponent.h"
+#include "InputAction.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+// Sets default values
+AFPCharacter::AFPCharacter()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	bUseControllerRotationPitch = true;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
+	CameraBoom->TargetArmLength = 0.f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->bInheritPitch = true;
+	CameraBoom->bInheritYaw = true;
+	CameraBoom->bInheritRoll = true;
+
+	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+	ViewCamera->SetupAttachment(CameraBoom);
+	ViewCamera->bUsePawnControlRotation = false;
+
+}
+
+// Called when the game starts or when spawned
+void AFPCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	InitialYaw = GetActorRotation().Yaw;
+	
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		if (Subsystem)
+		{
+			Subsystem->AddMappingContext(CharacterMappingContext, 0);
+		}
+	}
+
+}
+
+void AFPCharacter::Move(const FInputActionValue& Value)
+{
+	const FVector2D DirectionValue = Value.Get<FVector2D>();
+
+	const FRotator ControlRot = Controller->GetControlRotation();
+	const FRotator YawRot(0.f, ControlRot.Yaw, 0.f);
+
+	const FVector ForwardDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+	AddMovementInput(ForwardDir,DirectionValue.Y);
+	const FVector RightDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
+	AddMovementInput(RightDir, DirectionValue.X);
+}
+
+void AFPCharacter::Look(const FInputActionValue& Value)
+{
+	const FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	AddControllerPitchInput(LookAxisVector.Y);
+	AddControllerYawInput(LookAxisVector.X);
+
+	FRotator ControlRot = Controller->GetControlRotation();
+
+	ControlRot.Pitch = FMath::ClampAngle(ControlRot.Pitch, MinPitch, MaxPitch);
+
+	float CurrentYaw = ControlRot.Yaw;
+	float BodyYaw = GetActorRotation().Yaw;
+	float DeltaYaw = FMath::FindDeltaAngleDegrees(BodyYaw, CurrentYaw);
+
+	if (DeltaYaw < MinYaw)
+	{
+		ControlRot.Yaw = BodyYaw + MinYaw;
+	}
+
+	else if (DeltaYaw > MaxYaw)
+	{
+		ControlRot.Yaw = BodyYaw + MaxYaw;
+	}
+
+	Controller->SetControlRotation(ControlRot);
+}
+
+void AFPCharacter::Jump()
+{
+	Super::Jump();
+}
+
+// Called every frame
+void AFPCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	 
+	if (!Controller) return;
+
+	FRotator ControlRot = Controller->GetControlRotation();
+	FRotator BodyRot = GetActorRotation();
+
+	float DeltaYaw = FMath::FindDeltaAngleDegrees(BodyRot.Yaw, ControlRot.Yaw);
+
+	if (FMath::Abs(DeltaYaw) > (MaxYaw * 0.8f))
+	{
+		FRotator TargetRot = FRotator(0.f, ControlRot.Yaw, 0.f);
+		BodyRot = FMath::RInterpTo(BodyRot, TargetRot, DeltaTime, BodyFollowSpeed);
+		SetActorRotation(BodyRot);
+	}
+}
+
+// Called to bind functionality to input
+void AFPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPCharacter::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPCharacter::Look);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPCharacter::Jump);
+
+	}
+
+}
+
