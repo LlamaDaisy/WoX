@@ -33,9 +33,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* CrouchAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	virtual void Jump() override;
+	virtual void ToggleCrouch();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float MinYaw = -90.f;
@@ -54,6 +58,9 @@ public:
 
 	float InitialYaw;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool isCrouching = false;
+
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -67,9 +74,5 @@ protected:
 
 private:	
 
-	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* CameraBoom;
-
-	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* ViewCamera;
+	
 };
