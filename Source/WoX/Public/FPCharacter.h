@@ -67,9 +67,9 @@ protected:
 
 private:	
 
-	UPROPERTY(VisibleAnywhere)
+	/*UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* ViewCamera;
+	UCameraComponent* ViewCamera;*/
 };

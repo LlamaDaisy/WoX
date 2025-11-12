@@ -22,17 +22,17 @@ AFPCharacter::AFPCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
-	CameraBoom->TargetArmLength = 0.f;
-	CameraBoom->bUsePawnControlRotation = true;
-	CameraBoom->bInheritPitch = true;
-	CameraBoom->bInheritYaw = true;
-	CameraBoom->bInheritRoll = true;
+	//CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	//CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
+	//CameraBoom->TargetArmLength = 0.f;
+	//CameraBoom->bUsePawnControlRotation = true;
+	//CameraBoom->bInheritPitch = true;
+	//CameraBoom->bInheritYaw = true;
+	//CameraBoom->bInheritRoll = true;
 
-	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+	/*ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	ViewCamera->SetupAttachment(CameraBoom);
-	ViewCamera->bUsePawnControlRotation = false;
+	ViewCamera->bUsePawnControlRotation = false;*/
 
 }
 
