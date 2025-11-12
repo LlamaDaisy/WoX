@@ -21,19 +21,6 @@ AFPCharacter::AFPCharacter()
 	bUseControllerRotationYaw = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	//CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	//CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
-	//CameraBoom->TargetArmLength = 0.f;
-	//CameraBoom->bUsePawnControlRotation = true;
-	//CameraBoom->bInheritPitch = true;
-	//CameraBoom->bInheritYaw = true;
-	//CameraBoom->bInheritRoll = true;
-
-	/*ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	ViewCamera->SetupAttachment(CameraBoom);
-	ViewCamera->bUsePawnControlRotation = false;*/
-
 }
 
 // Called when the game starts or when spawned
@@ -101,6 +88,22 @@ void AFPCharacter::Jump()
 	Super::Jump();
 }
 
+void AFPCharacter::ToggleCrouch()
+{
+	if (isCrouching)
+	{
+		UnCrouch();
+		isCrouching = false;
+	}
+
+	else 
+	{
+		Crouch();
+		isCrouching = true;
+	}
+
+}
+
 // Called every frame
 void AFPCharacter::Tick(float DeltaTime)
 {
@@ -130,7 +133,9 @@ void AFPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPCharacter::Look);
+		
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPCharacter::Jump);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AFPCharacter::ToggleCrouch);
 
 	}
 
