@@ -36,10 +36,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* CrouchAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* InteractAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	virtual void Jump() override;
 	virtual void ToggleCrouch();
+	virtual void Interact();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float MinYaw = -90.f;
@@ -60,6 +64,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool isCrouching = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	float InteractDistance = 250.f;
+
 
 
 	// Called every frame
