@@ -2,13 +2,16 @@
 
 
 #include "FPCharacter.h"
+#include "I_Interactable.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
 #include "InputAction.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 
 // Sets default values
 AFPCharacter::AFPCharacter()
@@ -104,6 +107,75 @@ void AFPCharacter::ToggleCrouch()
 
 }
 
+void AFPCharacter::Interact()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Interact Pressed"));
+
+	if (!Controller) return;
+
+	FVector Start;
+	FRotator ViewRot;
+	Controller->GetPlayerViewPoint(Start, ViewRot);
+
+	if (InteractDistance <= 0.f)
+	{
+		InteractDistance = 250.f;
+	}
+
+	FVector End = Start + (ViewRot.Vector() * InteractDistance);
+
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	Start,
+	//	End,
+	//	FColor::Green,
+	//	false,
+	//	1.0f,
+	//	0,
+	//	1.5f
+	//	);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_Visibility,
+		Params
+	);
+
+	if (!bHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Hit"));
+		return;
+	}
+
+	AActor* HitActor = Hit.GetActor();
+	if (!HitActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit, but no actor"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s (%s)"),
+		*HitActor->GetName(),
+		*HitActor->GetClass()->GetName());
+
+	if (HitActor->GetClass()->ImplementsInterface(UI_Interactable::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor has I_Interactable, calling Interact"));
+		II_Interactable::Execute_Interact(HitActor, this);
+	}
+
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor does not have I_Interactable"));
+	}
+}
+
 // Called every frame
 void AFPCharacter::Tick(float DeltaTime)
 {
@@ -136,6 +208,7 @@ void AFPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPCharacter::Jump);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AFPCharacter::ToggleCrouch);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AFPCharacter::Interact);
 
 	}
 
