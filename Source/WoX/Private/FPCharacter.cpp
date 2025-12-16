@@ -63,7 +63,7 @@ void AFPCharacter::Look(const FInputActionValue& Value)
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	AddControllerPitchInput(LookAxisVector.Y);
-	AddControllerYawInput(LookAxisVector.X);
+	AddControllerYawInput(-LookAxisVector.X);
 
 	FRotator ControlRot = Controller->GetControlRotation();
 
